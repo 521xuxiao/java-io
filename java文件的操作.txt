@@ -176,43 +176,48 @@
 
 //上传图片
   @RequestMapping(value="/uploadPicture")
-  @ResponseBody
-  public ReturnData uploadPicture(MultipartFile  file,HttpServletRequest request) {
-   ReturnData returndata = new ReturnData();
-   if(file.isEmpty()) {
-    returndata.setSuccess(false);
-    returndata.setResultMessage("文件为空");
-    return returndata;
-   }
-   String originalname = file.getOriginalFilename();
-   String suffixname = originalname.substring(originalname.lastIndexOf("."));
-   String path = "C:/repair/";
-   UUID id = UUID.randomUUID();
-   String filename = id+suffixname;
-   String fullpath = path+filename;
-   String requestpath = request.getContextPath();
-   String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + requestpath;
-   File dest = new File(fullpath);
-   if (!dest.getParentFile().exists()) {
-             dest.getParentFile().mkdirs();
-         }
-   try {
-       file.transferTo(dest);
-       String filepath = basePath+"/BMPlatServers/repair/"+filename;
-    Map<String,Object> map = new HashMap<>();
-    map.put("filename", filename);
-    map.put("filepath", filepath);
-    map.put("oldname", originalname);
-    returndata.setResult(map);
-       returndata.setSuccess(true);
-       returndata.setResultMessage("success");
-      } catch (IOException e) {
-          e.printStackTrace();
-          returndata.setSuccess(false);
-       returndata.setResultMessage("系统异常");
-      }
-      return returndata;
-  }
+    public ReturnData uploadPicture(MultipartFile file, HttpServletRequest request) {
+        ReturnData returndata = new ReturnData();
+        if(file.isEmpty()) {
+            returndata.setSuccess(false);
+            returndata.setResultMessage("文件为空");
+            return returndata;
+        }
+        String originalname = file.getOriginalFilename();
+        String suffixname = originalname.substring(originalname.lastIndexOf("."));
+        String path = imagePath;          //1.文件上传到服务器上面的路径             
+        UUID id = UUID.randomUUID();
+        String filename = id+suffixname;
+        String fullpath = path+filename;
+        String requestpath = request.getContextPath();
+        String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + requestpath;
+        File dest = new File(fullpath);
+        if (!dest.getParentFile().exists()) {
+            dest.getParentFile().mkdirs();
+        }
+        String imgName = request.getParameter("imgName");
+        if(!(imgName==null || "".equals(imgName))) {     // 2, 删除已经存在的图片
+            String fullpathDelete = imagePath + imgName;
+            File files = new File(fullpathDelete);
+            files.delete();
+        }
+        try {
+            file.transferTo(dest);
+            String filepath = basePath+"/ERP/uploadPicture/"+filename;   //   3, 修改回显的图片路径,和接口保持一致,映射图片的myWebConfig配置类也要改
+            Map<String,Object> map = new HashMap<>();
+            map.put("filename", filename);
+            map.put("filepath", filepath);
+            map.put("oldname", originalname);
+            returndata.setResult(map);
+            returndata.setSuccess(true);
+            returndata.setResultMessage("success");
+        } catch (IOException e) {
+            e.printStackTrace();
+            returndata.setSuccess(false);
+            returndata.setResultMessage("系统异常");
+        }
+        return returndata;
+    }
 
 // 删除图片
 //删除图片
